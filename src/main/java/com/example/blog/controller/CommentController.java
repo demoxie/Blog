@@ -26,4 +26,16 @@ public class CommentController {
 
         return ResponseEntity.accepted().headers(headers).body(comments1);
     }
+    @PutMapping(value="/edit-comment/{postId}/{commentId}")
+    private ResponseEntity<Comments> editComment(@PathVariable Long postId,@PathVariable Long commentId,@RequestBody Comments comments, HttpSession httpSession){
+        Comments comments1 = commentServices.editComment(postId,commentId,comments,httpSession);
+
+        var headers = new HttpHeaders();
+        headers.add("Responded", "MyController");
+        return ResponseEntity.accepted().headers(headers).body(comments1);
+    }
+    @GetMapping(value = "/delete-comment/{postId}/{commentId}")
+    private void delete_comment(@PathVariable Long postId,@PathVariable Long commentId,HttpSession httpSession){
+        commentServices.deleteComment(postId,commentId,httpSession);
+    }
 }

@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class BlogBlogUserServiceImpl implements BlogUserService {
+public class BlogUserServiceImpl implements BlogUserService {
     private final BlogUserRepository blogUserRepository;
     @Autowired
-    public BlogBlogUserServiceImpl(BlogUserRepository blogUserRepository) {
+    public BlogUserServiceImpl(BlogUserRepository blogUserRepository) {
         this.blogUserRepository = blogUserRepository;
     }
 

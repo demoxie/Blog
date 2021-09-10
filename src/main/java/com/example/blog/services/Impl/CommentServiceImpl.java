@@ -43,7 +43,35 @@ public class CommentServiceImpl implements CommentServices {
     }
 
     @Override
-    public void deleteComment(Posts posts, Comments comments, BlogUser blogUser) {
+    public void deleteComment(Long postId,Long commentId,HttpSession httpSession) {
+        BlogUser user = (BlogUser) httpSession.getAttribute("BlogUser");
 
+        if(user == null){
+            System.out.println("its null");
+        }
+        Posts post = new Posts();
+        Optional<Posts> posts = postRepository.findById(postId);
+        if(posts.isPresent()){
+            post = posts.get();
+        }
+        commentRepository.delete(commentRepository.findCommentsByBloguserAndPostsAndCommentID(user,post,commentId));
+
+    }
+
+    @Override
+    public Comments editComment(Long postId, Long commentId,Comments comment, HttpSession httpSession) {
+        BlogUser loggedInUser = (BlogUser) httpSession.getAttribute("BlogUser");
+
+        if(loggedInUser == null){
+            System.out.println("its null");
+        }
+        Posts post = new Posts();
+        Optional<Posts> posts = postRepository.findById(postId);
+        if(posts.isPresent()){
+            post = posts.get();
+        }
+        Comments comments = commentRepository.findCommentsByBloguserAndPostsAndCommentID(loggedInUser,post,commentId);
+        comments.setComment(comment.getComment());
+        return commentRepository.save(comments);
     }
 }
