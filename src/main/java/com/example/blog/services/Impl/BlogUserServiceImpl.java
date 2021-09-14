@@ -22,13 +22,13 @@ public class BlogUserServiceImpl implements BlogUserService {
 
     @Override
     public BlogUser login(BlogUser blogUser, HttpSession httpSession) {
-        BlogUser loginBlogUser = (BlogUser) httpSession.getAttribute("BlogUser");
+        BlogUser loginBlogUser = (BlogUser) httpSession.getAttribute(blogUser.getUsername());
         if(loginBlogUser != null){
             return loginBlogUser;
         }
         BlogUser currentUser = blogUserRepository.findBlogUserByUsernameAndPassword(blogUser.getUsername(), blogUser.getPassword());
-        System.out.println(currentUser.getPosts());
-        httpSession.setAttribute("BlogUser",currentUser);
+        System.out.println(currentUser.getListOfPostsOwned());
+        httpSession.setAttribute(currentUser.getUsername(), currentUser);
         return currentUser;
     }
 

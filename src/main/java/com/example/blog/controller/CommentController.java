@@ -38,4 +38,8 @@ public class CommentController {
     private void delete_comment(@PathVariable Long postId,@PathVariable Long commentId,HttpSession httpSession){
         commentServices.deleteComment(postId,commentId,httpSession);
     }
+    @GetMapping(value = "/like-comment/{userId}/{postId}/{commentId}")
+    private Comments likeAComment(@PathVariable Long userId,@PathVariable Long postId,@PathVariable Long commentId,HttpSession httpSession){
+        return commentServices.likeComment(userId,postId,commentId,httpSession);
+    }
 }

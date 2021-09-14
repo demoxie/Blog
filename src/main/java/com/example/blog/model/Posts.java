@@ -5,9 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -19,14 +17,19 @@ public class Posts {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postID;
     private String content;
-    private Long noOfLikes;
+    private Long noOfLikes = 0L;
+
     private LocalDateTime datePosted = LocalDateTime.now(ZoneId.of("Africa/Lagos"));
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "posts")
-    private List<Comments> comments;
+    @OneToMany
+    private List<Comments> comments = new LinkedList<>();
 
-    @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    private BlogUser bloguser;
+    @ManyToOne
+    private BlogUser poster;
+
+
+    @OneToMany
+    private List<BlogUser> postLikers = new ArrayList<>();
+    
 
 }

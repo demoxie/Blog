@@ -1,9 +1,13 @@
 package com.example.blog.services.Impl;
 
 import com.example.blog.model.BlogUser;
-import com.example.blog.model.PostLikers;
+//import com.example.blog.model.PostLikers;
+//import com.example.blog.model.PostLiker;
+import com.example.blog.model.Favourites;
 import com.example.blog.model.Posts;
-import com.example.blog.repository.PostLikersRepository;
+//import com.example.blog.repository.PostLikersRepository;
+//import com.example.blog.repository.PostLikerRepository;
+import com.example.blog.repository.BlogUserRepository;
 import com.example.blog.repository.PostRepository;
 import com.example.blog.services.PostService;
 import com.sun.istack.NotNull;
@@ -13,31 +17,34 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
-    private final PostLikersRepository postLikersRepository;
+    //private final PostLikerRepository postLikerRepository;
+    private final BlogUserRepository blogUserRepository;
+
     @Autowired
-    public PostServiceImpl(PostRepository postRepository,PostLikersRepository postLikersRepository) {
+    public PostServiceImpl(PostRepository postRepository,BlogUserRepository blogUserRepository) {
 
         this.postRepository = postRepository;
-        this.postLikersRepository = postLikersRepository;
+        this.blogUserRepository = blogUserRepository;
+        //this.postLikerRepository = postLikerRepository;
+
     }
 
     @Override
     public Posts createPost(Posts posts, HttpSession httpSession) {
-        BlogUser loginUser = (BlogUser) httpSession.getAttribute("BlogUser");
+        BlogUser loginUser = (BlogUser) httpSession.getAttribute(posts.getPoster().getUsername());
 
         if(loginUser == null ){
             return null;
         }
 
-        Posts post = new Posts();
-        post.setContent(posts.getContent());
-        post.setBloguser(loginUser);
-        return postRepository.saveAndFlush(post);
+        posts.setPoster(loginUser);
+        loginUser.getListOfPostsOwned().add(posts);
+        return postRepository.save(posts);
     }
 
     @Override
@@ -46,7 +53,7 @@ public class PostServiceImpl implements PostService {
         String response = "";
         if(loginUser != null ){
             Long id = loginUser.getUserID();
-            Optional<Posts> posts = Optional.ofNullable(postRepository.findPostsByBloguserAndPostID(loginUser, postId));
+            Optional<Posts> posts = Optional.ofNullable(postRepository.findPostsByPosterAndPostID(loginUser, postId));
             if(posts.isPresent()){
                 Posts savedPost = posts.get();
                 System.out.println(savedPost.getContent());
@@ -73,19 +80,60 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PostLikers likePost(Long postId, BlogUser blogUser, HttpSession httpSession) {
-        PostLikers postLikers = postLikersRepository.findByPostIDAndBloguser(postId,blogUser);
-        Posts post = postRepository.findPostsByBloguserAndPostID(blogUser,postId);
-        if(postLikers == null){
-            post.setNoOfLikes(post.getNoOfLikes()+1);
-            postRepository.save(post);
-           /* PostLikers newPostLikers = new PostLikers();
-            newPostLikers.setPosts(post);
-            newPostLikers.*/
+    public Posts likePost(Long userId,Long postId, HttpSession httpSession) {
+        Posts post = postRepository.findPostsByPostID(postId);
+        BlogUser loggedInUser = (BlogUser) httpSession.getAttribute(blogUserRepository.findBlogUserByUserID(userId).getUsername());
+        if(loggedInUser == null){
+            System.out.println("login to like this post");
+            return null;
         }
-        post.setNoOfLikes(post.getNoOfLikes()-1);
-        postRepository.save(post);
-        return  null;
+        List<BlogUser> postLikers = post.getPostLikers();
+        System.out.println("<--------->"+postLikers.toString());
+        Optional<BlogUser> likeUser = postLikers.stream().filter(userUser -> Objects.equals(userUser.getUserID(), loggedInUser.getUserID())).findAny();
+        if(likeUser.isEmpty()){
+            post.setNoOfLikes(post.getNoOfLikes()+1);
+            post.getPostLikers().add(loggedInUser);
+            return postRepository.save(post);
+        }else{
+            if(post.getNoOfLikes()>0){
+                System.out.println("entereturn postRepository.save(post);");
+                postLikers.remove(likeUser.get());
+                post.setPostLikers(postLikers);
+                post.setNoOfLikes(post.getNoOfLikes() - 1);
+                return postRepository.saveAndFlush(post);
+            }
+            System.out.println("ok not now");
+            return null;
+        }
+    }
 
+    @Override
+    public Map<Long,String> addPostToFavourites(Long userId, Long postId, HttpSession httpSession) {
+        BlogUser blogUser = (BlogUser) httpSession.getAttribute(blogUserRepository.findBlogUserByUserID(userId).getUsername());
+        if(blogUser == null){
+            System.out.println("Not loged in");
+            return null;
+        }
+        Posts post = postRepository.findPostsByPostID(postId);
+        blogUser.getFavouritePosts().put(post.getPostID(),post.getContent());
+        blogUserRepository.save(blogUser);
+        return blogUser.getFavouritePosts();
+    }
+    @Override
+    public BlogUser addUserToFriendList(Long userId,Long friendId, HttpSession httpSession) {
+        BlogUser blogUser = (BlogUser) httpSession.getAttribute(blogUserRepository.findBlogUserByUserID(userId).getUsername());
+        if(blogUser == null){
+            System.out.println("Not loged in");
+            return null;
+        }
+        BlogUser blogUser1 = blogUserRepository.findBlogUserByUserID(friendId);
+        if(blogUser1.getUsername().equals(blogUser.getUsername())){
+            System.out.println("You can't add yourself as friend");
+            return null;
+        }
+        Map<Long,String> list = blogUser.getFriendList();
+        list.put(blogUser1.getUserID(),blogUser1.getFirstName()+" "+blogUser1.getLastName());
+        blogUser.setFriendList(list);
+        return blogUserRepository.save(blogUser);
     }
 }

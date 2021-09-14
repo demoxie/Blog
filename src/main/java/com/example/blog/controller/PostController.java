@@ -1,15 +1,18 @@
 package com.example.blog.controller;
 
+//import com.example.blog.model.PostLikers;
+import com.example.blog.model.BlogUser;
+import com.example.blog.model.Favourites;
 import com.example.blog.model.Posts;
 import com.example.blog.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api")
@@ -36,9 +39,22 @@ public class PostController {
     public Posts editPost(@PathVariable Long postId,@RequestBody Posts posts,HttpSession httpSession) {
         return postService.editPost(postId,posts,httpSession);
     }
-    @GetMapping (value = "/like-post/{postId}")
-    private String likePost(@PathVariable Long postId,HttpSession httpSession){
-        return postService.deletePost(postId, httpSession);
+    @PutMapping (value = "/like-post/{userId}/{postId}")
+    private Posts likePost(@PathVariable Long postId,@PathVariable Long userId, HttpSession httpSession){
+        return postService.likePost(userId,postId, httpSession);
+    }
+    @GetMapping (value = "/add-post-to-favourites/{userId}/{postId}")
+    private Map<Long,String> addPostToFavourite(@PathVariable Long userId, @PathVariable Long postId, HttpSession httpSession){
+        return postService.addPostToFavourites(userId,postId, httpSession);
+    }
+    @GetMapping(value = "/add-friend/{userId}/{friendId}")
+    private ResponseEntity<BlogUser> connectToUser(@PathVariable Long userId,@PathVariable Long friendId, HttpSession httpSession){
+        BlogUser blogUser1 = postService.addUserToFriendList(userId,friendId, httpSession);
+
+        var headers = new HttpHeaders();
+        headers.add("Responded", "add friend");
+
+        return ResponseEntity.accepted().headers(headers).body(blogUser1);
     }
 
 

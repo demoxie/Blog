@@ -3,8 +3,8 @@ package com.example.blog.model;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 public class BlogUser {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long userID;
     private String firstName;
     private String lastName;
@@ -22,16 +22,16 @@ public class BlogUser {
     private String password;
     private String profilePicsUrl;
 
-    @OneToMany(mappedBy = "bloguser",cascade = CascadeType.ALL , fetch = FetchType.LAZY)
-    private List<Comments> comments;
+    @OneToMany
+    private List<Comments> comments = new LinkedList<>();
 
-    @OneToMany(mappedBy = "bloguser",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Posts> posts;
+    @OneToMany
+    private List<Posts> listOfPostsOwned = new ArrayList<>();
+    @ElementCollection
+    private Map<Long,String> favouritePosts = new LinkedHashMap<>();
+    @ElementCollection
+    private Map<Long,String> friendList = new LinkedHashMap<>();
 
-/*@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "bloguser")
-    private List<Comments> comments;*/
-  /*  @OneToMany
-    private List<Posts> posts;*/
 
 
 }

@@ -6,6 +6,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,24 +14,24 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @Entity
 public class Comments {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long commentID;
     private String comment;
-    private Long noOfLikes;
+    private Long noOfLikes = 0L;
+
     private LocalDateTime dateCommented = LocalDateTime.now(ZoneId.of("Africa/Lagos"));
 
-    @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
-    @JoinColumn(name = "post_id")
+    @ManyToOne
+    private BlogUser bloguser;
+
+    @ManyToOne
     private Posts posts;
 
-
-    @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    private BlogUser bloguser;
+    @OneToMany
+    private Set<BlogUser> commentLikers = new HashSet<>();
 
 
 }
