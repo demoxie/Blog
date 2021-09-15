@@ -2,15 +2,14 @@ package com.example.blog.controller;
 
 import com.example.blog.model.BlogUser;
 import com.example.blog.services.BlogUserService;
-import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -55,5 +54,17 @@ public class UserController {
     @PutMapping(value="/updateBlogUser/{id}")
     private ResponseEntity<BlogUser> updateBlogUser(@PathVariable Long id){
         return blogUserService.getBlogUser(id);
+    }
+
+
+    @GetMapping(value="/deactivate-account/{userId}")
+    private void deleteAccount(@PathVariable Long userId, HttpSession httpSession){
+        //String result = blogUserService.deactivateAccount(userId,httpSession).toString();
+        blogUserService.deactivateAccount(userId,httpSession);
+    }
+    @GetMapping(value="/cancel-deactivation/{userId}")
+    private String cancelDeactivation(@PathVariable Long userId, HttpSession httpSession){
+        return blogUserService.cancelDeactivation(userId);
+
     }
 }
